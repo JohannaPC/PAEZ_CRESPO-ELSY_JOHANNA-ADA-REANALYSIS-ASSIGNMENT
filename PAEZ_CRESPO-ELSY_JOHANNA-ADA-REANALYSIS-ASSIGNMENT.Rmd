@@ -1,0 +1,289 @@
+---
+title: "PAEZ_CRESPO-ELSY_JOHANNA-ADA-DATA-REANALYSIS-ASSIGNMENT"
+author: "Elsy Johanna Paez Crespo"
+date: "4/4/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = TRUE,
+	message = TRUE,
+	comment = "##",
+	prompt = FALSE,
+	tidy = TRUE,
+	tidy.opts = list(blank = FALSE, width.cutoff = 75),
+	fig.path = "img/",
+	fig.align = "center"
+)
+```
+
+#### Introduction
+The distribution of genetic variability across geography is affected by multiple biotic and abiotic factor, including geography. More specifically, physical barriers play a pivotal role in promoting population divergence and genetic structuring. This study used the Panama Canal watershed to test the effects of old and recent riverine barriers in creating population structure in ***Saguinus geoffroyi***. Mitochondrial sequences and microsatellite genotypes were obtained from hair and tissue. Díaz-Muñoz collected samples from three populations distributed across two riverine barriers (the Panama Canal and the Chagres River). Author predicted that there would be significant differentiation between populations separated by the Chagres, whereas differentiation across the Panama Canal would be more modest, due to its novelty as a barrier. To test these predictions, Díaz-Muñoz (1): examined differences in genetic variability among sampling localities at mtDNA and microsatellite loci, (2): used F-statistics and analysis of molecular variance (AMOVA) at mtDNA and microsatellite loci to investigate population genetic structure between sampling localities, and (3); used Bayesian clustering algorithms to determine the number of likely populations. The three populations distributed across the riverine barriers revealed genetic structure across the Chagres River and the Panama Canal, suggesting that both waterways act as barriers to gene flow. ***F-statistics*** and exact tests of population differentiation suggest population structure on either side of both riverine barriers. Genetic differentiation across the Canal, however, was less than observed across the Chagres. As conclusions the author highlights the assessment of genetic structure of ***S. geoffroyi***, and supported the idea that riverine barriers create genetic structure across taxa in the Panama Canal.
+
+#### Visualization of Data
+```{r}
+df <- read.csv(file = "~/Documents/AppliedDataAnalysis/Repos/test-repo/PAEZ_CRESPO-ELSY_JOHANNA-ADA-REANALYSIS-ASSIGNMENT/microsat_data.csv", sep = ";", header = TRUE, stringsAsFactors = FALSE)
+head (df)
+```
+From the paper dataset (see df) I extracted loci (Ceb02) to create df1. df1 dataset was converted into 'genepop' format which I used in all following analyses (excluding Na counts, means and sds, and AMOVA)
+
+```{r}
+df1 <- read.csv(file = "~/Documents/AppliedDataAnalysis/Repos/test-repo/PAEZ_CRESPO-ELSY_JOHANNA-ADA-REANALYSIS-ASSIGNMENT/microsat_data(7).csv", sep = ";", header = TRUE, stringsAsFactors = FALSE)
+head (df1)
+```
+
+#### Replications/Reanalysis
+
+#####Calling packages
+```{r}
+library (adegenet)
+library (pegas)
+library (hierfstat)
+library(dplyr)
+```
+
+#####Loading dataset using "ADEGENET" package (per population)#####
+`nAll() #nAll function doesn't work because it counts alleles for each locus incliding ALL individuals form ALL 3 populations`
+`rm(list=ls()) #to remove all objects from your workspace`
+
+<span style="color:blue">***Extracting Na per populations***</span>
+
+<span style="color:green">***Gamboa Population***</span>
+To calculate Na (counts, means and sds) per population I created 3 different datasets (microsat_data(7)_pop1.gen, microsat_data(7)_pop2.gen, microsat_data(7)_pop2.gen) 
+```{r}
+genidTax_pop1 <- read.genepop("microsat_data(7)_pop1.gen")
+genidTax_pop1
+popNames(genidTax_pop1) # "LCGD20M=Gamboa; "998=PanamaWest; "NJ7807=Soberania"
+x <- summary(genidTax_pop1)
+x
+GamNA <- x$loc.n.all #number of alleles per locus
+GamNA
+```
+
+<span style="color:green">***Panama Population***</span>
+```{r}
+genidTax_pop2 <- read.genepop("microsat_data(7)_pop2.gen")
+genidTax_pop2
+popNames(genidTax_pop2) # "LCGD20M=Gamboa; "998=PanamaWest; "NJ7807=Soberania"
+y <- summary(genidTax_pop2)
+y
+PanNA <- y$loc.n.all #number of alleles per locus
+PanNA
+```
+
+<span style="color:green">***Soberania Population***</span>
+```{r}
+genidTax_pop3 <- read.genepop("microsat_data(7)_pop3.gen")
+genidTax_pop3
+popNames(genidTax_pop3) # "LCGD20M=Gamboa; "998=PanamaWest; "NJ7807=Soberania"
+z <- summary(genidTax_pop3)
+z
+SobNA <- z$loc.n.all #number of alleles per locus
+SobNA
+```
+
+#####Loading dataset using "ADEGENET" package#####
+```{r}
+genidTax <- read.genepop("microsat_data(7).gen")
+genidTax
+popNames(genidTax) # "LCGD20M=Gamboa; "998=PanamaWest; "NJ7807=Soberania"
+```
+
+<span style="color:blue">***Creating subset to calculate He and Ho from each population***</span>
+
+<span style="color:green">***Gamboa Population***</span>
+```{r}
+Gamboa <- genidTax[1:19]
+Gamboa
+popNames(Gamboa)
+summary(Gamboa)
+x1 <- summary(Gamboa)
+x1
+GamHe <- x1$Hexp
+GamHe
+GamHo <- x1$Hobs
+GamHo
+```
+
+<span style="color:green">***Panama Population***</span>
+```{r}
+Panama <- genidTax[20:41]
+Panama
+popNames(Panama)
+summary(Panama)
+x2 <- summary(Panama)
+x2
+PanHe <- x2$Hexp
+PanHe
+PanHo <- x2$Hobs
+PanHo
+```
+
+<span style="color:green">***Soberania Population***</span>
+```{r}
+Soberania <- genidTax[42:59]
+Soberania
+popNames(Soberania)
+summary(Soberania)
+x3 <- summary(Soberania)
+SobHe <- x3$Hexp
+SobHe
+SobHo <- x3$Hobs
+SobHo
+```
+
+<span style="color:blue">***Creating DataFrame***</span>
+```{r}
+Ho <- c(x1$Hobs, x2$Hobs, x3$Hobs)
+Ho
+He <- c(x1$Hexp, x2$Hexp, x3$Hexp)
+He
+Na <- c(x$loc.n.all, y$loc.n.all, z$loc.n.all)
+Na
+```
+
+```{r}
+Population <- c("Gamboa", "Gamboa", "Gamboa", "Gamboa", "Gamboa", "Gamboa", "Gamboa", "Panama W.", "Panama W.", "Panama W.", "Panama W.", "Panama W.", "Panama W.", "Panama W.", "Soberania", "Soberania", "Soberania", "Soberania", "Soberania", "Soberania", "Soberania")
+Locus <- c("SB7", "SB8", "SB19", "SB38", "Ceb10", "Ceb11", "Ceb128")
+MicroChar <- data.frame(Population, Na, Locus, Ho, He)
+MicroChar
+```
+
+<span style="color:green">***Creating subsets from DataFrame***</span>
+```{r}
+GamboaDF <- subset(MicroChar, Population=="Gamboa")
+GamboaDF
+
+PanamaWDF <- subset(MicroChar, Population=="Panama W.")
+PanamaWDF
+
+SoberaniaDF <- subset(MicroChar, Population=="Soberania")
+SoberaniaDF
+```
+
+<span style="color:blue">***Ho: means and sd***</span>
+```{r}
+Means_Ho <- summarise(MicroChar, Gam_meanHo = mean(GamboaDF$Ho, na.rm = TRUE), 
+                      Pan_meanHo = mean(PanamaWDF$Ho, na.rm = TRUE), 
+                      Sob_meanHo = mean(SoberaniaDF$Ho, na.rm = TRUE))
+Means_Ho
+
+sd_Ho <- summarise(MicroChar, Gam_meanHo = sd(GamboaDF$Ho, na.rm = TRUE), 
+                   Pan_meanHo = sd(PanamaWDF$Ho, na.rm = TRUE), 
+                   Sob_meanHo = sd(SoberaniaDF$Ho, na.rm = TRUE))
+sd_Ho
+```
+
+<span style="color:blue">***He: means and sd***</span>
+```{r}
+Means_He <- summarise(MicroChar, Gam_meanHe = mean(GamboaDF$He, na.rm = TRUE), 
+                      Pan_meanHe = mean(PanamaWDF$He, na.rm = TRUE), 
+                      Sob_meanHe = mean(SoberaniaDF$He, na.rm = TRUE))
+Means_He
+
+sd_He <- summarise(MicroChar, Gam_meanHe = sd(GamboaDF$He, na.rm = TRUE), 
+                   Pan_meanHe = sd(PanamaWDF$He, na.rm = TRUE), 
+                   Sob_meanHe = sd(SoberaniaDF$He, na.rm = TRUE))
+sd_He
+```
+
+<span style="color:blue">***Na: means and sd***</span>
+```{r}
+Means_Na <- summarise(MicroChar, Gam_meanNa = mean(GamboaDF$Na, na.rm = TRUE), 
+                      Pan_meanNa = mean(PanamaWDF$Na, na.rm = TRUE), 
+                      Sob_meanNa = mean(SoberaniaDF$Na, na.rm = TRUE))
+Means_Na
+
+sd_Na <- summarise(MicroChar, Gam_SDNa = sd(GamboaDF$Na, na.rm = TRUE), 
+                   Pan_SDNa = sd(PanamaWDF$Na, na.rm = TRUE), 
+                   Sob_SDNa = sd(SoberaniaDF$Na, na.rm = TRUE))
+sd_Na
+```
+
+<span style="color:blue">***Creating dataframe (means and sd of microsatellite data)***</span>
+```{r}
+a <- Means_Na
+Na1 <- t(a)
+Na1
+
+b <- Means_Ho
+Ho1 <- t(b)
+Ho1
+
+c <- Means_He
+He1 <- t(c)
+He1
+
+
+a2 <- sd_Na
+Na2 <- t(a2)
+Na2
+
+b2 <- sd_Ho
+Ho2 <- t(b2)
+Ho2
+
+c2 <- sd_He
+He2 <- t(c2)
+He2
+```
+
+```{r}
+Na <- paste(Na1, Na2, sep=" +/- ") #Combining columns
+Na
+
+Ho <- paste(Ho1, Ho2, sep=" +/- ") #Combining columns
+Ho
+
+He <- paste(He1, He2, sep=" +/- " ) #Combining columns
+He
+```
+
+<span style="color:blue">***DataFrame (means and sd of microsatellite data)***</span>
+```{r}
+Micro_Mean_SD <- data.frame(Na, Ho, He, row.names = c("Gamboa", "Panama West", "Soberania"))
+Micro_Mean_SD
+```
+
+The results presented here match with the results obtained by GeneAlex
+```{r}
+GeneAlex <- read.csv(file = "~/Documents/AppliedDataAnalysis/Repos/test-repo/PAEZ_CRESPO-ELSY_JOHANNA-ADA-REANALYSIS-ASSIGNMENT/microsat_data_results_GeneAlex.csv", sep=",", header=TRUE, stringsAsFactors=FALSE)
+head(GeneAlex)
+```
+
+#### AMOVA Analysis
+```{r}
+library(adegenet)
+library(poppr)
+```
+ 
+#####Loading dataset using "read.genalex" function#####
+```{r}
+(data1 <- read.genalex("microsat_data(7)SG.csv", ploidy = 2, geo = TRUE, sep =";"))
+class(data1) # object type
+summary(data1)# dataset characteristics
+    
+# Herarchical groups in our Data
+splitStrata(data1) <- ~Pop/populations # agrupa datos por subespecie ej: Tjack_LP
+data1 # object information
+table(strata(data1, ~populations))  # number of individuals per populations
+
+#AMOVA test
+amova1 <- poppr.amova(data1, ~populations)
+amova1
+summary(amova1)
+(asignif   <- randtest(amova1, nrepet = 10100)) # based on 10100 permutations
+asignif
+```
+
+#### Summary
+Prior to the analysis, I "cleaned" the raw dataset published by the author (e.g., excluding Ceb02 from the DataSet). Furthermore, Na, Ho, He (including some of their meand and sd) didn't match, because the number of alleles didn't corresponded between the ones published and the online dataset. 
+
+For AMOVA analysis the author reported only the following hierarchies (among populations, within populations). In contrast, the AMOVA that I did subdivided the hierarchy of "within populations" in two different components: "between samples within populations" and "within samples."  
+
+#### References
+- Diaz-Muñoz, S.L. (2011). Role of recent and old riverine barriers in fine-scale population genetic structure of Geoffroy’s tamarin (Saguinus geoffroyi) in the Panama Canal watershed. Ecology and Evolution. 298-309.
+- Jombart, T. (2017). An introduction to adegenet 2.1.0. Imperial College London. 79pp.
+- Perform Analysis of Molecular Variance (AMOVA) [In]: https://rdrr.io/cran/poppr/man/poppr.amova.html
